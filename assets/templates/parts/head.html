@@ -1,0 +1,53 @@
+{{define "parts/head.html"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="The thoughts, projects, and explanations of Cory Redmond.">
+    <meta name="author" content="Cory Redmond">
+
+{{if .OGInfo}}
+{{comments "<!-- Generated OG content -->"}}
+{{range $property, $content := .OGInfo}}
+    <meta property="$property" content="$content">
+{{end}}
+{{else}}
+{{comments "<!-- Default OG content -->"}}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{if .Title -}}{{.Title}} | {{end}}Cory Redmond's Blog" />
+    <meta property="og:url" content="https://coryredmond.com/"/>
+    {{/*<meta property="og:image" content="https://dankbotlist.com/img/icons/apple-icon-152x152.png" />*/}}
+{{end}}
+
+    <title>{{if .Title -}}{{.Title}} | {{end}}Cory Redmond's Blog</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="css/clean-blog.min.css" rel="stylesheet">
+
+{{comments `
+    <!--
+        Hey, this project is most probably open source.. https://github.com/SilverCory/coryredmond.com
+
+        Twitter: cory_ori
+        Snapchat: gran_daddie
+        Instagram: coryr545
+        Github: SilverCory
+    `}}
+{{if .ctx}}
+    {{ASCII .ctx.ClientIP}}
+    {{end}}
+{{comments "-->"}}
+
+</head>
+{{end}}

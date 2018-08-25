@@ -1,0 +1,6 @@
+.idea
+vendor
+Gopkg.lock
+bin
+logs
+config.json
