@@ -9,13 +9,14 @@
     <meta name="description" content="The thoughts, projects, and explanations of Cory Redmond.">
     <meta name="author" content="Cory Redmond">
 
+    <meta property="og:site_name" content="Cory Redmond's Blog" />
 {{if .OGInfo}}
-{{comments "<!-- Generated OG content -->"}}
+    {{comments "<!-- Generated OG content -->"}}
 {{range $property, $content := .OGInfo}}
-    <meta property="$property" content="$content">
+    <meta property="{{$property}}" content="{{$content}}">
 {{end}}
 {{else}}
-{{comments "<!-- Default OG content -->"}}
+    {{comments "<!-- Default OG content -->"}}
     <meta property="og:type" content="website" />
     <meta property="og:title" content="{{if .Title -}}{{.Title}} | {{end}}Cory Redmond's Blog" />
     <meta property="og:url" content="https://coryredmond.com/"/>

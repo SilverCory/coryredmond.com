@@ -16,13 +16,14 @@ import (
 	"github.com/utrack/gin-csrf"
 )
 
-var allowedInRegisterRegex = regexp.MustCompile(`(?i)^(/(logout|register|tos|privacy|((js|css|img|auth)/*.)))|/$`)
+var allowedInRegisterRegex = regexp.MustCompile(`(?i)^(/(logout|tos|privacy|((vendor|js|css|img|auth)/*.)))|/$`)
 
 const CSP = `
 default-src 'self';
 img-src 'self' https://cdnjs.cloudflare.com/ https://placekitten.com/ https://cdn.discordapp.com/;
 script-src 'self' https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js 'sha256-SplWdsqEBp8LjzZSKYaEfDXhXSi0/oXXxAnQSYREAuI=';
-style-src 'self' https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css 'unsafe-inline';
+style-src 'self' https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css https://fonts.googleapis.com 'unsafe-inline';
+font-src 'self' https://fonts.gstatic.com;
 `
 
 type Middleware struct {
@@ -108,7 +109,9 @@ func (m *Middleware) setupSessions() (err error) {
 }
 
 func (m *Middleware) setupIPCooldowns() {
-	m.blog.Gin.Use(gin_redisgo_cooldowns.NewRateLimit(m.blog.Redis, "coryredmond.cooldown.general.ip:", 100, time.Second*5, nil))
+	if m.blog.Config.Redis.Enabled {
+		m.blog.Gin.Use(gin_redisgo_cooldowns.NewRateLimit(m.blog.Redis, "coryredmond.cooldown.general.ip:", 100, time.Second*5, nil))
+	}
 }
 
 func (m *Middleware) setupCors() {
@@ -117,7 +120,7 @@ func (m *Middleware) setupCors() {
 	}
 
 	m.blog.Gin.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://cdnjs.cloudflare.com", "https://placekitten.com", "https://coryredmond.com"},
+		AllowOrigins:     []string{"https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://coryredmond.com"},
 		AllowMethods:     []string{"GET"},
 		AllowHeaders:     []string{"Origin"},
 		ExposeHeaders:    []string{"Content-Length"},

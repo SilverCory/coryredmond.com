@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/SilverCory/coryredmond.com/data"
+
 	"github.com/gin-contrib/static"
 	"github.com/gomodule/redigo/redis"
 
@@ -16,12 +18,12 @@ type Blog struct {
 	Gin    *gin.Engine
 	Config *config.Config
 	Redis  *redis.Pool
-	// TODO add data.
+	Data   *data.Handler
 }
 
 // Handler an interface for sections of the site that handle.
 type Handler interface {
-	RegisterHandlers() error
+	RegisterHandlers(b *Blog) error
 }
 
 func New(conf *config.Config) (ret *Blog, err error) {
@@ -94,11 +96,6 @@ func (b *Blog) registerPagesAndMiddleware() error {
 	if err := b.AddPostMiddleware(); err != nil {
 		return err
 	}
-	//
-	//oauth := Oauth{Web: ret}
-	//oauth.RegisterHandlers()
-	//
-	//pages := &Pages{Web: ret}
-	//pages.RegisterHandlers()
+
 	return nil
 }
