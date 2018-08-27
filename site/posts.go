@@ -17,4 +17,4 @@ func (b *Blog) LoadPostsViaDate(page int) []data.Post {
 
 // TODO load in to redis
 // TODO load in to redis if len(postsFound) == 0
-// TODO dab on the haters
+// ヽ( •_)ᕗ
