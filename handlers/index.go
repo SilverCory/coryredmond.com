@@ -41,6 +41,7 @@ func (i *Index) RegisterHandlers(b *site.Blog) error {
 		}
 		ctx.Redirect(302, "/")
 	})
+
 	b.Gin.GET("/login", func(ctx *gin.Context) {
 		v := viewdata.Default(ctx)
 		v.Set("Title", "Login")
@@ -54,21 +55,16 @@ func (i *Index) RegisterHandlers(b *site.Blog) error {
 
 	b.Gin.POST("/login", i.handleLoginPost)
 
-	b.Gin.NoRoute(func(ctx *gin.Context) {
-		v := viewdata.Default(ctx)
-		v.Set("Title", "Page Not Found")
-		v.Set("OGInfo", map[string]string{
-			"og:title": "Page Not Found",
-			"og:type":  "website",
-		})
-		v.HTML(404, "pages/404.html")
+	b.Gin.NoRoute(site.Error404)
+	b.Gin.GET("/500", site.Error500)
+	b.Gin.GET("/500viapanic", func(ctx *gin.Context) {
+		panic("ahhh")
 	})
 
 	return nil
 }
 
 func (i *Index) handleLoginPost(ctx *gin.Context) {
-	// TODO
 	username, exists := ctx.GetPostForm("username")
 	if !exists {
 		ctx.String(400, "You can't log in because it's not implemented!")

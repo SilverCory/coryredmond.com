@@ -90,3 +90,11 @@ func (v ViewData) HTML(code int, name string) {
 	v.Set("GeneratedTime", time.Now().Format(time.RFC822))
 	v.GetContext().HTML(code, name, v)
 }
+
+func (v ViewData) Clear() {
+	ctx := v.GetContext()
+	for k := range v {
+		delete(v, k)
+	}
+	v["ctx"] = ctx
+}

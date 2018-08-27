@@ -1,0 +1,16 @@
+{{define "parts/post_preview.html"}}
+        <div class="post-preview">
+            <a href="/p/{{.URL}}">
+                <h2 class="post-title">
+                    {{.Title}}
+                </h2>
+                <h3 class="post-subtitle">
+                    {{.Summary}}
+                </h3>
+            </a>
+            <p class="post-meta">Posted by
+                <a href="/">{{.Author.Name}}</a>
+                on {{.CreatedAt}} {{if .UpdatedAt}}<small>updated on {{.UpdatedAt}}</small>{{end}}</p>
+        </div>
+        <hr>
+{{end}}

@@ -1,4 +1,4 @@
-package handlers
+package util
 
 import (
 	"math/rand"
@@ -6,12 +6,35 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/dineshappavoo/basex"
 )
 
+// Constant definitions
+const MaxUInt = ^uint(0)
+const MinUInt = 0
+
+const MaxInt = int(^uint(0) >> 1)
+const MinInt = -MaxInt - 1
+
 func GetPostURL(id, title string) string {
-	return url.PathEscape(strings.Replace(strings.TrimSpace(title), " ", "-", -1) + "-" + id)
+	title += " "
+	newTitle := ""
+	for k, v := range title {
+		if k >= 42 {
+			if newTitle == "" {
+				newTitle = title[:42]
+			}
+			break
+		} else {
+			if unicode.IsSpace(v) {
+				newTitle = title[:k]
+			}
+		}
+	}
+
+	return url.PathEscape(strings.Replace(strings.TrimSpace(newTitle), " ", "-", -1) + "-" + id)
 }
 
 func GetPostIDFromURL(urlPath string) string {

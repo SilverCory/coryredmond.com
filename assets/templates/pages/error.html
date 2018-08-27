@@ -1,18 +1,18 @@
-{{define "pages/404.html"}}
+{{define "pages/error.html"}}
 {{template "parts/head.html" .}}
 <body>
 {{template "parts/navbar.html" .}}
 
 <!-- Page Header -->
-<header class="masthead" style="background-image: url('/img/404-bg.jpg')">
+<header class="masthead" style="background-image: url('/img/{{.Image}}')">
     <div class="overlay"></div>
     <div class="container">
         <div class="row">
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
-                    <h1>Page Not Found</h1>
-                    <h2 class="subheading">The page at this address does not exist.</h2>
-                    <span class="meta">If you think this is a mistake please contact me.</span>
+                    <h1>{{.Error.Name}}</h1>
+                    <h2 class="subheading">{{.Error.Message}}</h2>
+                    <span class="meta">If you think this is a mistake please contact me. <small>Code: {{.Error.Code}}</small></span>
                 </div>
             </div>
         </div>

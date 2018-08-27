@@ -3,22 +3,31 @@ package site
 import (
 	"html/template"
 	"io"
+	"log"
+	"net/http"
+	"net/http/httputil"
 	"os"
-
-	"github.com/SilverCory/coryredmond.com/data"
-
-	"github.com/gin-contrib/static"
-	"github.com/gomodule/redigo/redis"
+	"strings"
+	"time"
 
 	"github.com/SilverCory/coryredmond.com/config"
+	"github.com/SilverCory/coryredmond.com/data"
+	"github.com/SilverCory/coryredmond.com/util"
+
+	"github.com/gin-contrib/cache/persistence"
+	"github.com/gin-contrib/static"
+
 	"github.com/gin-gonic/gin"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 type Blog struct {
-	Gin    *gin.Engine
-	Config *config.Config
-	Redis  *redis.Pool
-	Data   *data.Handler
+	Gin         *gin.Engine
+	Config      *config.Config
+	Redis       *redis.Pool
+	StaticStore persistence.CacheStore
+	Data        *data.Handler
 }
 
 // Handler an interface for sections of the site that handle.
@@ -39,7 +48,7 @@ func New(conf *config.Config) (ret *Blog, err error) {
 
 	ret.configureTemplates()
 
-	if err = ret.registerPagesAndMiddleware(); err != nil {
+	if err = ret.loadPrePagesAndMiddleware(); err != nil {
 		return
 	}
 
@@ -66,7 +75,7 @@ func (b *Blog) setUpLogs() error {
 	}
 
 	b.Gin.Use(gin.LoggerWithWriter(io.MultiWriter(f)))
-	b.Gin.Use(gin.RecoveryWithWriter(io.MultiWriter(errF, os.Stderr)))
+	b.Gin.Use(RecoveryWithWriter(io.MultiWriter(errF, os.Stderr)))
 	return nil
 }
 
@@ -80,7 +89,7 @@ func (b *Blog) configureTemplates() {
 }
 
 // Setup pages and middleware
-func (b *Blog) registerPagesAndMiddleware() error {
+func (b *Blog) loadPrePagesAndMiddleware() error {
 
 	// Static files to load
 	b.Gin.Use(static.Serve("/", static.LocalFile(b.Config.Web.StaticFilePath, false)))
@@ -97,5 +106,43 @@ func (b *Blog) registerPagesAndMiddleware() error {
 		return err
 	}
 
+	if b.Redis != nil {
+		b.StaticStore = persistence.NewRedisCacheWithPool(b.Redis, 3*time.Hour)
+	} else {
+		b.StaticStore = persistence.NewInMemoryStore(3 * time.Hour)
+	}
+
 	return nil
+}
+
+// RecoveryWithWriter returns a middleware for a given writer that recovers from any panics and writes a 500 if there was one.
+func RecoveryWithWriter(out io.Writer) gin.HandlerFunc {
+	var logger *log.Logger
+	if out != nil {
+		logger = log.New(out, "\n\n\x1b[31m", log.LstdFlags)
+	}
+	return func(c *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				if logger != nil {
+					stack := util.Stack(3)
+					httprequest, _ := httputil.DumpRequest(c.Request, false)
+					logger.Printf("[Recovery] %s panic recovered:\n%s\n%s\n%s%s", time.Now().Format("2006/01/02 - 15:04:05"), string(httprequest), err, stack, string([]byte{27, 91, 48, 109}))
+				}
+				if XHR(c) {
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"error": err,
+					})
+				} else {
+					Error500(c)
+				}
+				c.Abort()
+			}
+		}()
+		c.Next()
+	}
+}
+
+func XHR(c *gin.Context) bool {
+	return strings.ToLower(c.Request.Header.Get("X-Requested-With")) == "xmlhttprequest"
 }
