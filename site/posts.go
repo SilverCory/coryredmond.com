@@ -24,15 +24,24 @@ func (b *Blog) ReloadAllPosts() {
 	start := time.Now()
 	i := 0
 	var postsFound []data.Post
+
+	// If it's less than 10 stop unless i == 0.
 	for len(postsFound) == 10 || i == 0 {
 		i++
+
+		// We need the last time to know where to start looking in loadPostsViaDateForce.
+		// Set the time to now by default because if there's less than 10 posts it will be zero.
 		lastTime := time.Now()
 		if len(postsFound) == 10 {
 			lastTime = postsFound[len(postsFound)-1].CreatedAt
 		}
 		postsFound = b.loadPostsViaDateForce(lastTime, 10, i, true)
 	}
+
+	// Set the total pages so we know our limits.
 	b.TotalPages = i
+
+	// Logging.
 	fmt.Println("Loaded all posts in: ", time.Now().Sub(start))
 }
 
