@@ -3,14 +3,9 @@ package util
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"log"
-	"net/http"
-	"net/http/httputil"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,34 +16,6 @@ var (
 	dot       = []byte(".")
 	slash     = []byte("/")
 )
-
-// RecoveryWithWriter returns a middleware for a given writer that recovers from any panics and writes a 500 if there was one.
-func RecoveryWithWriter(out io.Writer) gin.HandlerFunc {
-	var logger *log.Logger
-	if out != nil {
-		logger = log.New(out, "\n\n\x1b[31m", log.LstdFlags)
-	}
-	return func(c *gin.Context) {
-		defer func() {
-			if err := recover(); err != nil {
-				if logger != nil {
-					stack := data.Stack(3)
-					httprequest, _ := httputil.DumpRequest(c.Request, false)
-					logger.Printf("[Recovery] %s panic recovered:\n%s\n%s\n%s%s", time.Now().Format("2006/01/02 - 15:04:05"), string(httprequest), err, stack, string([]byte{27, 91, 48, 109}))
-				}
-				if XHR(c) {
-					c.JSON(http.StatusInternalServerError, gin.H{
-						"error": err,
-					})
-				} else {
-					Error500(c)
-				}
-				c.Abort()
-			}
-		}()
-		c.Next()
-	}
-}
 
 func XHR(c *gin.Context) bool {
 	return strings.ToLower(c.Request.Header.Get("X-Requested-With")) == "xmlhttprequest"

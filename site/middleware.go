@@ -2,7 +2,6 @@ package site
 
 import (
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/SilverCory/gin-redisgo-cooldowns"
@@ -11,7 +10,6 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	redstore "github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
-	"github.com/gomodule/redigo/redis"
 	"github.com/unrolled/secure"
 	"github.com/utrack/gin-csrf"
 )
@@ -56,7 +54,7 @@ func (m *Middleware) setupCsrf() {
 		Secret: m.blog.Config.Web.CSRFSecret,
 		ErrorFunc: func(c *gin.Context) {
 
-			if c.Request.URL.Path == "/CSPReport" || strings.HasPrefix(c.Request.URL.Path, "/alexamemes/") {
+			if c.Request.URL.Path == "/CSPReport" {
 				return
 			}
 
@@ -74,20 +72,6 @@ func (m *Middleware) setupSessions() (err error) {
 		return
 	}
 
-	//TODO this is here, idk why
-
-	m.blog.Redis = &redis.Pool{
-		MaxIdle:     10,
-		IdleTimeout: 240 * time.Second,
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
-		Dial: func() (redis.Conn, error) {
-			return dialWithDB(conf.Network, conf.Address, conf.Password, conf.Database)
-		},
-	}
-
 	store, err := redstore.NewStoreWithPool(m.blog.Redis, []byte("dankest_cory_blog_ever"))
 	if err != nil {
 		return
@@ -101,10 +85,10 @@ func (m *Middleware) setupSessions() (err error) {
 		Secure:   true,
 		MaxAge:   int(((24 + time.Hour) * 7).Seconds()),
 		HttpOnly: true,
-		Domain:   "sb.cory.red",
+		Domain:   "coryredmond.com",
 	})
 
-	m.blog.Gin.Use(sessions.Sessions("selfbot_sessions", store))
+	m.blog.Gin.Use(sessions.Sessions("coryredmond_sessions", store))
 	return nil
 }
 
@@ -167,30 +151,4 @@ func (m *Middleware) setupSecurity() {
 	}()
 
 	m.blog.Gin.Use(secureFunc)
-}
-
-func dialWithDB(network, address, password, DB string) (redis.Conn, error) {
-	c, err := dial(network, address, password)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := c.Do("SELECT", DB); err != nil {
-		c.Close()
-		return nil, err
-	}
-	return c, err
-}
-
-func dial(network, address, password string) (redis.Conn, error) {
-	c, err := redis.Dial(network, address)
-	if err != nil {
-		return nil, err
-	}
-	if password != "" {
-		if _, err := c.Do("AUTH", password); err != nil {
-			c.Close()
-			return nil, err
-		}
-	}
-	return c, err
 }

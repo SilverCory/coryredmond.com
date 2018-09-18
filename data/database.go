@@ -33,6 +33,7 @@ func NewHandler(sqlConf config.MySQL) (*Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+	handler.Engine = handler.Engine.Debug()
 
 	err = handler.Sync()
 	if err != nil {
@@ -43,11 +44,15 @@ func NewHandler(sqlConf config.MySQL) (*Handler, error) {
 
 }
 
+// $2a$15$CgUx3pr9phONckRzy6fX3eB8RlhNUDFWCJf7qVsndTXTJn7YoScA6
 func (h *Handler) Sync() error {
-	h.Engine.AutoMigrate(&User{}, &Post{})
+	h.Engine.AutoMigrate(&UserPosts{}, &User{}, &Post{}, &PostText{})
 	gob.Register(User{})
 	gob.Register(Post{})
+	gob.Register(UserPosts{})
 
-	h.Engine.Model(&User{}).Related(&Post{}, "Posts", "Authors")
+	h.Engine.Model(&UserPosts{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
+	h.Engine.Model(&UserPosts{}).AddForeignKey("post_id", "posts(id)", "CASCADE", "CASCADE")
+	h.Engine.Model(&UserPosts{}).AddUniqueIndex("unique_key_index_user_post", "post_id", "user_id")
 	return nil
 }

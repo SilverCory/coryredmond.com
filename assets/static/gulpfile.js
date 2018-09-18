@@ -44,6 +44,12 @@ gulp.task('vendor', function() {
     ])
     .pipe(gulp.dest('./vendor/jquery'))
 
+  // Typed.js
+  gulp.src([
+      './node_modules/typed.js/lib/*',
+    ])
+    .pipe(gulp.dest('./vendor/typed.js'))
+
 });
 
 // Compile SCSS

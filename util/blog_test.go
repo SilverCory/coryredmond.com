@@ -18,7 +18,7 @@ func TestGetPostURL2(t *testing.T) {
 
 func TestGetPostIDFromURL(t *testing.T) {
 	if resp := GetPostIDFromURL("Hello-World-6dykW3VqLje"); resp != "6dykW3VqLje" {
-		t.Errorf("Invalid ID received from URL! %q\n", resp)
+		t.Errorf("Invalid PostID received from URL! %q\n", resp)
 	}
 }
 
@@ -31,9 +31,9 @@ func TestEncodeDecodeID(t *testing.T) {
 	t.Run("TestGeneratePostID", func(t *testing.T) {
 		id, idStr, err = GeneratePostID()
 		if err != nil {
-			t.Errorf("An error occurred generating an ID! %q\n", err)
+			t.Errorf("An error occurred generating an PostID! %q\n", err)
 		} else if id == 0 {
-			t.Error("Generated ID is 0!")
+			t.Error("Generated PostID is 0!")
 		} else if idStr == "" {
 			t.Error("There is a nil idStr generated!")
 		}
@@ -48,11 +48,11 @@ func TestEncodeDecodeID(t *testing.T) {
 	t.Run("TestDecodeID", func(t *testing.T) {
 		decID, err := DecodeID(idStr)
 		if err != nil {
-			t.Errorf("An error occurred decoding the ID! %q\n", err)
+			t.Errorf("An error occurred decoding the PostID! %q\n", err)
 		} else if decID == 0 {
-			t.Error("Decoded ID is 0!")
+			t.Error("Decoded PostID is 0!")
 		} else if decID != id {
-			t.Errorf("ID was not decoded properly! (enc)%d != (dec)%d", id, decID)
+			t.Errorf("PostID was not decoded properly! (enc)%d != (dec)%d", id, decID)
 		}
 
 		t.Logf("%q => %d", idStr, id)

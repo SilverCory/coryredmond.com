@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/SilverCory/coryredmond.com/config"
@@ -23,11 +22,12 @@ import (
 )
 
 type Blog struct {
-	Gin         *gin.Engine
-	Config      *config.Config
-	Redis       *redis.Pool
-	StaticStore persistence.CacheStore
-	Data        *data.Handler
+	Gin        *gin.Engine
+	Config     *config.Config
+	Redis      *redis.Pool
+	CacheStore persistence.CacheStore
+	Data       *data.Handler
+	TotalPages int // Keeps a track of how many pages are on the index.
 }
 
 // Handler an interface for sections of the site that handle.
@@ -47,13 +47,7 @@ func New(conf *config.Config) (ret *Blog, err error) {
 	}
 
 	ret.configureTemplates()
-
-	if err = ret.loadPrePagesAndMiddleware(); err != nil {
-		return
-	}
-
 	return
-
 }
 
 // Set up logging to files
@@ -89,7 +83,7 @@ func (b *Blog) configureTemplates() {
 }
 
 // Setup pages and middleware
-func (b *Blog) loadPrePagesAndMiddleware() error {
+func (b *Blog) LoadPrePagesAndMiddleware() error {
 
 	// Static files to load
 	b.Gin.Use(static.Serve("/", static.LocalFile(b.Config.Web.StaticFilePath, false)))
@@ -104,12 +98,6 @@ func (b *Blog) loadPrePagesAndMiddleware() error {
 
 	if err := b.AddPostMiddleware(); err != nil {
 		return err
-	}
-
-	if b.Redis != nil {
-		b.StaticStore = persistence.NewRedisCacheWithPool(b.Redis, 3*time.Hour)
-	} else {
-		b.StaticStore = persistence.NewInMemoryStore(3 * time.Hour)
 	}
 
 	return nil
@@ -129,7 +117,7 @@ func RecoveryWithWriter(out io.Writer) gin.HandlerFunc {
 					httprequest, _ := httputil.DumpRequest(c.Request, false)
 					logger.Printf("[Recovery] %s panic recovered:\n%s\n%s\n%s%s", time.Now().Format("2006/01/02 - 15:04:05"), string(httprequest), err, stack, string([]byte{27, 91, 48, 109}))
 				}
-				if XHR(c) {
+				if util.XHR(c) {
 					c.JSON(http.StatusInternalServerError, gin.H{
 						"error": err,
 					})
@@ -141,8 +129,4 @@ func RecoveryWithWriter(out io.Writer) gin.HandlerFunc {
 		}()
 		c.Next()
 	}
-}
-
-func XHR(c *gin.Context) bool {
-	return strings.ToLower(c.Request.Header.Get("X-Requested-With")) == "xmlhttprequest"
 }
