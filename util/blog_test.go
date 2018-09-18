@@ -20,6 +20,10 @@ func TestGetPostIDFromURL(t *testing.T) {
 	if resp := GetPostIDFromURL("Hello-World-6dykW3VqLje"); resp != "6dykW3VqLje" {
 		t.Errorf("Invalid PostID received from URL! %q\n", resp)
 	}
+
+	if resp := GetPostIDFromURL("6dykW3VqLje"); resp != "6dykW3VqLje" {
+		t.Errorf("Invalid PostID received from URL! %q\n", resp)
+	}
 }
 
 func TestEncodeDecodeID(t *testing.T) {

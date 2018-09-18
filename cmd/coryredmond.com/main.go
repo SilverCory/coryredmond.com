@@ -77,9 +77,9 @@ func main() {
 
 	post0 := data.Post{
 		Author:     *user,
-		URL:        "URL1",
+		URL:        "A5yXe6k41aK",
 		FullTextID: 0,
-		PostURLID:  12312311123,
+		PostURLID:  8473897989218709840,
 		Summary:    "A short summary",
 		Title:      "Hello World",
 	}

@@ -44,9 +44,12 @@ func GetPostIDFromURL(urlPath string) string {
 	}
 
 	parts := strings.Split(urlPath, "-")
-	if len(parts) < 2 {
+	if len(parts) == 1 {
+		return parts[0]
+	} else if len(parts) < 1 {
 		return ""
 	}
+
 	return parts[len(parts)-1]
 }
 
