@@ -1,7 +1,6 @@
 package data
 
 import (
-	"git.cory.red/DankBotList/data"
 	"github.com/jinzhu/gorm"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
@@ -23,7 +22,7 @@ type PostText struct {
 	FullText   string `gorm:"type:LONGTEXT"`
 }
 
-func (p *Post) GetFullText(h *data.Handler) (string, uint, error) {
+func (p *Post) GetFullText(h *Handler) (string, uint, error) {
 	var postText PostText
 	err := h.Engine.First(&postText, "id = ?", p.FullTextID).Error
 	if err != nil {
@@ -57,7 +56,7 @@ func (p *Post) GetFullText(h *data.Handler) (string, uint, error) {
 	return postText.FullText, postText.OldVersion, nil
 }
 
-func (p *Post) SetFullText(h *data.Handler, newText string) error {
+func (p *Post) SetFullText(h *Handler, newText string) error {
 	oldText, oldId, err := p.GetFullText(h)
 	if err != nil {
 		return err

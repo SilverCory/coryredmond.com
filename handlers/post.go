@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/SilverCory/coryredmond.com/data"
 
 	"github.com/SilverCory/coryredmond.com/site"
 	"github.com/SilverCory/coryredmond.com/site/viewdata"
@@ -78,15 +81,56 @@ func (p *Post) handlePost(ctx *gin.Context) {
 		return
 	}
 
+	post := data.Post{
+		PostURLID: id,
+	}
+
+	// Load blog
+	if err := p.blog.Data.Engine.First(&post, &post).Error; err != nil {
+		ctx.Error(err)
+		site.Error500(ctx)
+		fmt.Println(err)
+		return
+	}
+
+	// Load author
+	author, err := post.GetAuthor(p.blog.Data)
+	if err != nil {
+		ctx.Error(err)
+		site.Error500(ctx)
+		fmt.Println(err)
+		return
+	}
+
+	// Load fulltext
+	text, _, err := post.GetFullText(p.blog.Data)
+	if err != nil {
+		ctx.Error(err)
+		site.Error500(ctx)
+		fmt.Println(err)
+		return
+	}
+
 	v := viewdata.Default(ctx)
-	v.Set("Title", "Home")
-	v.Set("OGInfo", map[string]string{
-		"og:title":           "Home",
-		"og:type":            "profile",
-		"profile:first_name": "Cory",
-		"profile:last_name":  "Redmond",
-		"profile:username":   "CoryOry",
-		"profile:gender":     "Male",
-	})
+	v.Set("Title", post.Title)
+
+	OGInfo := map[string]string{
+		"og:title":               post.Title,
+		"og:type":                "article",
+		"article:published_time": post.CreatedAt.UTC().Format("2006-01-02T15:04:05Z"),
+		"article:author":         "https://coryredmond.com/",
+		"article:section":        "Front Page",
+	}
+
+	if post.CreatedAt.Before(post.UpdatedAt) {
+		OGInfo["article:modified_time"] = post.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z")
+	}
+
+	// TODO tags
+
+	v.Set("OGInfo", OGInfo)
+	v.Set("Post", post)
+	v.Set("Author", author)
+	v.Set("FullText", text)
 	v.HTML(200, "pages/post.html")
 }
