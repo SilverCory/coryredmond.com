@@ -43,10 +43,15 @@ func (b *Blog) loadPostsViaDateForce(previousTime time.Time, total, page int, ov
 		b.Data.Engine = b.Data.Engine.Debug()
 		b.Data.Engine.Model(&data.Post{}).Order("created_at ASC").Where("(created_at < ?)", previousTime).Limit(total).Find(&botsFound)
 		for k, v := range botsFound {
+			// Set the author of the post.
 			if _, err := v.GetAuthor(b.Data); err != nil {
 				panic(err)
 			}
-			botsFound[k] = v
+
+			// Check whether the post is published.
+			if v.Published {
+				botsFound[k] = v
+			}
 		}
 		if err := b.CacheStore.Set(cacheKey, botsFound, 3*time.Hour); err != nil {
 			// TODO error handling?
