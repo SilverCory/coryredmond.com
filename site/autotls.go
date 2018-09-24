@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -34,9 +35,13 @@ func (b *Blog) RunAutoTLS() error {
 
 func runWithManager(r http.Handler, m autocert.Manager, address string) error {
 	s := &http.Server{
-		Addr:      address + ":443",
-		TLSConfig: &tls.Config{GetCertificate: m.GetCertificate},
-		Handler:   r,
+		Addr:              address + ":443",
+		TLSConfig:         &tls.Config{GetCertificate: m.GetCertificate},
+		Handler:           r,
+		ReadHeaderTimeout: 3 * time.Second,
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		MaxHeaderBytes:    2048,
 	}
 
 	return s.ListenAndServeTLS("", "")
